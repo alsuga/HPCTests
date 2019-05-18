@@ -6,38 +6,24 @@
 #include <pthread.h>
 
 
-#define SIZE 700
+#define SIZE 835
 int matrixA[SIZE][SIZE];
 int matrixB[SIZE][SIZE];
 int matrixP[SIZE][SIZE];
 
 struct parameters {
-  int id;
+  int num_row;
+  int num_col;
 };
 
 void *dotproduct(void *arg) {
   struct parameters *p;
-  int i, j, k;
+  int k;
   p = (struct parameters *)arg;
-  if (p->id==1) {
-    for (i=0; i<(SIZE/2); i++) {
-      for (j=0; j<SIZE; j++) {
-        matrixP[i][j]=0;
-        for (k=0; k<SIZE; k++) {
-          matrixP[i][j] += matrixA[i][k] * matrixB[k][j];
-        }
-      }
-    }
-  }
-  else {
-    for(i=(SIZE/2);i<SIZE;i++) {
-      for(j=0;j<SIZE;j++) {
-        matrixP[i][j]=0;
-        for (k=0; k<SIZE; k++) {
-          matrixP[i][j] += matrixA[i][k] * matrixB[k][j];
-        }
-      }
-    }
+  //Fila multiplicado por columna (producto punto)
+  matrixP[p->num_row][p->num_col]=0;
+  for (k=0; k<SIZE; k++) {
+    matrixP[p->num_row][p->num_col]+=matrixA[p->num_row][k]*matrixB[k][p->num_col];
   }
   return(NULL);
 }
@@ -76,26 +62,16 @@ int main()
   /*Cálculo del producto*/
   clock_t t; 
   t = clock();
-  // pthread_t h[SIZE][SIZE];
-  pthread_t h1;
-  pthread_t h2;
-  // struct parameters p[SIZE][SIZE];
-  struct parameters p1;
-  struct parameters p2;
-  p1.id=1;
-  p2.id=2;
-  // for (i=0; i<SIZE; i++) {
-  //   for (j=0; j<SIZE; j++) {
-  //     p[i][j].num_row=i;
-  //     p[i][j].num_col=j;
-  //     pthread_create(&h[i][j],NULL,dotproduct,( void *)&p[i][j]);
-  //     pthread_join(h[i][j],NULL);
-  //   }
-  // }
-  pthread_create(&h1,NULL,dotproduct,( void *)&p1);
-  pthread_create(&h2,NULL,dotproduct,( void *)&p2);
-  pthread_join(h1,NULL);
-  pthread_join(h2,NULL);
+  pthread_t h[SIZE][SIZE];
+  struct parameters p[SIZE][SIZE];
+  for (i=0; i<SIZE; i++) {
+    for (j=0; j<SIZE; j++) {
+      p[i][j].num_row=i;
+      p[i][j].num_col=j;
+      pthread_create(&h[i][j],NULL,dotproduct,( void *)&p[i][j]);
+      pthread_join(h[i][j],NULL);
+    }
+  }
   t = clock() - t;
   double time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds
 

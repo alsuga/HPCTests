@@ -5,7 +5,7 @@
 #include <stdlib.h>
 int main()
 {
-  int size, i, j, lower=10, upper=30, r;
+  int size, i, j, lower=0, upper=10, r;
   /* Inicializa el generador de números aleatorios */
   srand(time(NULL));
   printf("Por favor ingrese el tamaño de la matriz cuadrada: ");

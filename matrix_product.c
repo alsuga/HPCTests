@@ -2,6 +2,7 @@
 #include <time.h>
 #include <stdio.h>
 #include <stdlib.h>
+
 int main()
 {
   int size, i, j, k, lower=0, upper=10, rA, rB;
@@ -41,6 +42,8 @@ int main()
 
 
   printf("Este es el producto de las matrices:\n");
+  clock_t t; 
+  t = clock();
   for (i=0; i<size; i++) {
     for (j=0; j<size; j++) {
       matrixP[i][j]=0;
@@ -49,6 +52,8 @@ int main()
       }
     }
   }
+  t = clock() - t;
+  double time_taken = ((double)t)/CLOCKS_PER_SEC; // in seconds
 
   printf("Este es el producto:\n");
   for (i=0; i<size; i++) {
@@ -57,6 +62,7 @@ int main()
     }
     printf("\n");
   }
+  printf("Se demoró %f segundos para ejecutarse\n", time_taken); 
 
 
   return 0;
