@@ -5,30 +5,35 @@
 #include <sys/types.h> 
 #include <unistd.h>
 #include <sys/mman.h>
+#include <sys/mman.h>
 
 void mat_mult(double da[], double db[], double out[], int m);
 void fill_data(double array[], int m, bool only_one);
-void process_mat_mult(double da[], double db[], double out[], int m, int num_proc);
+void process_mat_mult(double da[], double db[], double *out, int m, int num_proc);
+void *create_shared_memory(size_t size);
  
 int main()
 {
-  int m = 3;
+  int m = 600;
   double da[m * m];
   double db[m * m];
   double out[m * m];
+  double *shmem = (double *)create_shared_memory(m * m * sizeof(double));
 
   fill_data(da, m, true);
   fill_data(db, m, true);
   fill_data(out, m, true);
 
   //mat_mult(da, db, out, m);
-  process_mat_mult(da, db, out, m, m);
+  process_mat_mult(da, db, shmem, m, m);
 
+  printf("%.1f\n", shmem[0]);
+  /*
   for(int i = 0; i < m; i++) {
     for(int j = 0; j < m; j++)
-      printf("%f ", out[m * i + j]);
+      printf("%.1f ", shmem[m * i + j]);
     printf("\n");
-  }
+  }*/
     
 	//matrix_t a = { 4, 4, da }, b = { 4, 3, db };
 	//matrix c = mat_mul(&a, &b);
@@ -86,7 +91,6 @@ void process_mat_mult(double da[], double db[], double out[], int m, int num_pro
           dbIndex = m * k + j;
           out[outIndex] += da[daIndex] * db[dbIndex];
         }
-        printf("out index %d %f\n", outIndex, out[outIndex]);
       }
       exit(0);
     }
@@ -100,3 +104,18 @@ void fill_data(double array[], int m, bool only_one) {
   for(int i = 0; i <= m * m; i++)
     array[i] = only_one? 1 : rand() % 99;
 }
+
+
+void *create_shared_memory(size_t size) {
+  // Our memory buffer will be readable and writable:
+  int protection = PROT_READ | PROT_WRITE;
+
+  // The buffer will be shared (meaning other processes can access it), but
+  // anonymous (meaning third-party processes cannot obtain an address for it),
+  // so only this process and its children will be able to use it:
+  int visibility = MAP_ANONYMOUS | MAP_SHARED;
+
+  // The remaining parameters to `mmap()` are not important for this use case,
+  // but the manpage for `mmap` explains their purpose.
+  return mmap(NULL, size, protection, visibility, -1, 0);
+} 
